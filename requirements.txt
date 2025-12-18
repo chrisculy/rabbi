@@ -1,0 +1,15 @@
+# YouTube transcript retrieval
+youtube-transcript-api==0.6.2
+
+# AI/LLM APIs
+openai==1.54.0
+google-generativeai==0.8.3
+
+# PDF generation
+fpdf==1.7.2
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Additional utilities
+requests==2.31.0
