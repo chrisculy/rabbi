@@ -104,14 +104,14 @@ def get_youtube_transcript(video_url):
 
 def create_discussion_guide_prompt(transcript):
     """Create the prompt for generating a discussion guide."""
-    return f"""Based on the following sermon transcript, create a comprehensive small group leader discussion guide. 
+    return f"""Based on the following sermon transcript, create a small group leader discussion guide suitable for a 20-40 minute discussion. 
 
 The guide should include:
-1. A brief summary of the sermon's main message (2-3 sentences)
+1. A brief summary of the sermon's main message and the sermon passage (2-3 sentences)
 2. Key themes and scripture references mentioned
 3. 5-7 thoughtful discussion questions that:
-   - Help participants reflect on the sermon's message
-   - Connect the sermon to personal application
+   - Help participants reflect on the sermon's passage
+   - Connect the sermon and its passage to personal application
    - Encourage deeper theological exploration
    - Foster group conversation
 4. A practical application challenge for the week
