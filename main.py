@@ -7,6 +7,7 @@ It then evaluates both responses and creates a final PDF document.
 """
 
 import os
+import sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -279,8 +280,30 @@ def main():
     """Main function to orchestrate the discussion guide generation."""
     print("=== YouTube Sermon Discussion Guide Generator ===\n")
     
-    # Get YouTube URL from user
-    video_url = input("Enter YouTube video URL: ").strip()
+    # Get video URLs from command line arguments
+    video_urls = sys.argv[1:]
+    
+    # If no command line arguments, prompt for input
+    if not video_urls:
+        video_url = input("Enter YouTube video URL: ").strip()
+        if video_url:
+            video_urls = [video_url]
+        else:
+            print("Error: No URL provided")
+            return
+    
+    # Process each video URL
+    total = len(video_urls)
+    for idx, video_url in enumerate(video_urls, 1):
+        if total > 1:
+            print(f"\n{'='*60}")
+            print(f"Processing video {idx} of {total}")
+            print(f"{'='*60}\n")
+        
+        generate_sermon_discussion_guide_pdf(video_url)
+
+
+def generate_sermon_discussion_guide_pdf(video_url):
     if not video_url:
         print("Error: No URL provided")
         return
@@ -313,6 +336,7 @@ def main():
     
     print("\n=== Process Complete ===")
     print(f"Discussion guide saved as: {output_filename}")
+    return output_filename
 
 
 if __name__ == "__main__":
