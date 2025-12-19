@@ -7,24 +7,30 @@ It then evaluates both responses and creates a final PDF document.
 """
 
 import os
-import json
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 from dotenv import load_dotenv
-import openai
-import google.generativeai as genai
-from fpdf import FPDF
+from google import genai
+from google.genai import types
+import markdown
+import pdfkit
 import re
 from datetime import datetime
 import yt_dlp
-import tempfile
 
 # Load environment variables
 load_dotenv()
 
-# Configure APIs
-openai.api_key = os.getenv('OPENAI_API_KEY')
-genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+# Configure Google Genai client
+client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+
+# Define the path to the wkhtmltopdf executable
+path_to_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+
+# Configure pdfkit to use this path
+pdfkit_config = pdfkit.configuration(wkhtmltopdf=path_to_wkhtmltopdf)
+
+# Ensure the wkhtmltopdf.exe exists
+if not os.path.isfile(path_to_wkhtmltopdf):
+    raise FileNotFoundError(f"wkhtmltopdf executable not found at {path_to_wkhtmltopdf}. Please install wkhtmltopdf and update the path accordingly.")
 
 
 def extract_video_id(youtube_url):
@@ -117,44 +123,29 @@ The guide should include:
 4. A practical application challenge for the week
 5. Suggested closing prayer points
 
-Format the guide in a clear, easy-to-read structure that a small group leader can follow.
+Lay out the guide in a clear, easy-to-read structure that a small group leader can follow.
 
-SERMON TRANSCRIPT:
+The output must be in Markdown format.
+
+Please note that the sermon transcript will likely include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
+
+BEGIN SERMON TRANSCRIPT.
+
 {transcript[:8000]}
 
+END SERMON TRANSCRIPT.
 Please provide a well-structured discussion guide."""
-
-
-def generate_with_chatgpt(prompt):
-    """Generate discussion guide using ChatGPT."""
-    print("Generating discussion guide with ChatGPT...")
-    
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are an experienced small group ministry leader and theological educator who creates engaging discussion guides."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000
-        )
-        
-        guide = response.choices[0].message.content
-        print("✓ ChatGPT guide generated")
-        return guide
-    except Exception as e:
-        print(f"Error with ChatGPT: {e}")
-        return None
 
 
 def generate_with_gemini(prompt):
     """Generate discussion guide using Google Gemini."""
     print("Generating discussion guide with Gemini...")
-    
+
     try:
-        model = genai.GenerativeModel('gemini-1.5-pro')
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-3-flash-preview',
+            contents=prompt
+        )
         
         guide = response.text
         print("✓ Gemini guide generated")
@@ -164,121 +155,119 @@ def generate_with_gemini(prompt):
         return None
 
 
-def evaluate_guides(chatgpt_guide, gemini_guide, transcript):
-    """Evaluate which guide is better using ChatGPT as the judge."""
-    print("\nEvaluating both discussion guides...")
-    
-    evaluation_prompt = f"""You are an expert in evaluating small group discussion materials. 
-Compare the following two discussion guides and determine which one is better overall.
-
-Evaluate based on:
-1. Clarity and structure
-2. Quality and depth of discussion questions
-3. Practical applicability
-4. Theological soundness
-5. Engagement potential for small groups
-
-GUIDE A:
-{chatgpt_guide}
-
-GUIDE B:
-{gemini_guide}
-
-Respond with a JSON object in this format:
-{{
-    "winner": "A" or "B",
-    "reasoning": "Brief explanation of why this guide is better",
-    "score_a": score from 1-10,
-    "score_b": score from 1-10
-}}"""
-    
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are an expert evaluator of small group discussion materials. Respond only with valid JSON."},
-                {"role": "user", "content": evaluation_prompt}
-            ],
-            temperature=0.3,
-            max_tokens=500
-        )
-        
-        evaluation_text = response.choices[0].message.content
-        # Extract JSON from potential markdown code blocks
-        if "```json" in evaluation_text:
-            evaluation_text = evaluation_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in evaluation_text:
-            evaluation_text = evaluation_text.split("```")[1].split("```")[0].strip()
-        
-        evaluation = json.loads(evaluation_text)
-        
-        print(f"\n=== Evaluation Results ===")
-        print(f"Winner: Guide {evaluation['winner']}")
-        print(f"Score A (ChatGPT): {evaluation['score_a']}/10")
-        print(f"Score B (Gemini): {evaluation['score_b']}/10")
-        print(f"Reasoning: {evaluation['reasoning']}")
-        
-        return evaluation
-    except Exception as e:
-        print(f"Error during evaluation: {e}")
-        print("Defaulting to ChatGPT guide...")
-        return {"winner": "A", "reasoning": "Evaluation failed", "score_a": 0, "score_b": 0}
-
-
-class PDF(FPDF):
-    """Custom PDF class with header and footer."""
-    
-    def header(self):
-        self.set_font('Arial', 'B', 15)
-        self.cell(0, 10, 'Small Group Discussion Guide', 0, 1, 'C')
-        self.ln(5)
-    
-    def footer(self):
-        self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
-    
-    def chapter_title(self, title):
-        self.set_font('Arial', 'B', 12)
-        self.multi_cell(0, 8, title)
-        self.ln(2)
-    
-    def chapter_body(self, body):
-        self.set_font('Arial', '', 11)
-        self.multi_cell(0, 6, body)
-        self.ln()
-
-
-def export_to_pdf(guide_text, video_url, output_filename='discussion_guide.pdf'):
-    """Export the discussion guide to a PDF file."""
+def export_to_pdf(guide_markdown, video_title, video_publish_date, output_filename='discussion_guide.pdf'):
+    """Export the markdown discussion guide to a PDF file."""
     print(f"\nExporting to PDF: {output_filename}")
     
     try:
-        pdf = PDF()
-        pdf.add_page()
+        # Add metadata header to the markdown
+        metadata = f"""---
+**{video_title}**
+*{video_publish_date.strftime("%B %d, %Y")}*
+
+---
+
+"""
         
-        # Add metadata
-        pdf.set_font('Arial', 'I', 9)
-        pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%B %d, %Y")}', 0, 1)
-        pdf.cell(0, 5, f'Video: {video_url}', 0, 1)
-        pdf.ln(5)
+        full_markdown = metadata + guide_markdown
         
-        # Add the guide content
-        # Simple text wrapping for better PDF formatting
-        lines = guide_text.split('\n')
-        for line in lines:
-            line = line.strip()
-            if not line:
-                pdf.ln(3)
-                continue
-            
-            # Check if it's a heading (simple heuristic)
-            if line.isupper() or line.startswith('#') or (len(line) < 60 and not line.endswith('.')):
-                pdf.chapter_title(line.replace('#', '').strip())
-            else:
-                pdf.chapter_body(line)
+        # Convert markdown to HTML
+        html_content = markdown.markdown(
+            full_markdown,
+            extensions=['extra', 'nl2br', 'sane_lists']
+        )
         
-        pdf.output(output_filename)
+        # Wrap in a complete HTML document with styling
+        html_doc = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Small Group Discussion Guide</title>
+    <style>
+        @page {{
+            size: letter;
+            margin: 1in;
+            @bottom-center {{
+                content: counter(page);
+            }}
+        }}
+        body {{
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }}
+        h1 {{
+            font-size: 20pt;
+            font-weight: bold;
+            margin-top: 0.5em;
+            margin-bottom: 0.3em;
+            color: #1a1a1a;
+        }}
+        h2 {{
+            font-size: 16pt;
+            font-weight: bold;
+            margin-top: 0.8em;
+            margin-bottom: 0.3em;
+            color: #2a2a2a;
+        }}
+        h3 {{
+            font-size: 13pt;
+            font-weight: bold;
+            margin-top: 0.6em;
+            margin-bottom: 0.2em;
+            color: #3a3a3a;
+        }}
+        p {{
+            margin-top: 0.3em;
+            margin-bottom: 0.5em;
+        }}
+        ul, ol {{
+            margin-top: 0.3em;
+            margin-bottom: 0.5em;
+            padding-left: 1.5em;
+        }}
+        li {{
+            margin-bottom: 0.3em;
+        }}
+        hr {{
+            border: none;
+            border-top: 1px solid #ccc;
+            margin: 1em 0;
+        }}
+        strong {{
+            font-weight: bold;
+        }}
+        em {{
+            font-style: italic;
+        }}
+        blockquote {{
+            border-left: 3px solid #ccc;
+            padding-left: 1em;
+            margin-left: 0;
+            font-style: italic;
+            color: #555;
+        }}
+    </style>
+</head>
+<body>
+    {html_content}
+</body>
+</html>"""
+        
+        # Convert HTML to PDF using pdfkit
+        options = {
+            'page-size': 'Letter',
+            'margin-top': '1in',
+            'margin-right': '1in',
+            'margin-bottom': '1in',
+            'margin-left': '1in',
+            'encoding': 'UTF-8',
+            'enable-local-file-access': None
+        }
+        
+        pdfkit.from_string(html_doc, output_filename, options=options, configuration=pdfkit_config)
+        
         print(f"✓ PDF created successfully: {output_filename}")
         return output_filename
     except Exception as e:
@@ -292,50 +281,35 @@ def main():
     
     # Get YouTube URL from user
     video_url = input("Enter YouTube video URL: ").strip()
-    
     if not video_url:
         print("Error: No URL provided")
         return
     
-    # Step 1: Get transcript
     transcript = get_youtube_transcript(video_url)
     if not transcript:
         print("Failed to retrieve transcript. Exiting.")
         return
     
-    # Step 2: Create prompt
     prompt = create_discussion_guide_prompt(transcript)
     
-    # Step 3: Generate guides with both AI services
-    chatgpt_guide = generate_with_chatgpt(prompt)
-    gemini_guide = generate_with_gemini(prompt)
-    
-    if not chatgpt_guide and not gemini_guide:
-        print("Error: Both AI services failed to generate guides.")
+    discussion_guide = generate_with_gemini(prompt)
+    if not discussion_guide:
+        print("Error: Gemini failed to generate guide.")
         return
     
-    if not chatgpt_guide:
-        print("ChatGPT failed, using Gemini guide...")
-        final_guide = gemini_guide
-    elif not gemini_guide:
-        print("Gemini failed, using ChatGPT guide...")
-        final_guide = chatgpt_guide
-    else:
-        # Step 4: Evaluate both guides
-        evaluation = evaluate_guides(chatgpt_guide, gemini_guide, transcript)
-        
-        # Step 5: Select the best guide
-        if evaluation['winner'] == 'A':
-            final_guide = chatgpt_guide
-            print("\n✓ Selected ChatGPT guide")
+    # get the youtube video's title and publication date to include in the metadata
+    ydl_opts = {'quiet': True, 'skip_download': True}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(video_url, download=False)
+        video_title = info_dict.get('title', 'Unknown Title')
+        video_publish_date = info_dict.get('upload_date', 'Unknown Date')
+        if video_publish_date != 'Unknown Date':
+            video_publish_date = datetime.strptime(video_publish_date, '%Y%m%d')
         else:
-            final_guide = gemini_guide
-            print("\n✓ Selected Gemini guide")
-    
-    # Step 6: Export to PDF
-    video_id = extract_video_id(video_url)
-    output_filename = f'discussion_guide_{video_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
-    export_to_pdf(final_guide, video_url, output_filename)
+            video_publish_date = datetime.now()
+
+    output_filename = f'Kings Church - Small Group Discussion Guide - Week of {video_publish_date.strftime("%B %d, %Y")}.pdf'
+    export_to_pdf(discussion_guide, video_title, video_publish_date, output_filename)
     
     print("\n=== Process Complete ===")
     print(f"Discussion guide saved as: {output_filename}")

@@ -2,14 +2,14 @@
 yt-dlp==2025.12.08
 
 # AI/LLM APIs
-openai==1.54.0
-google-generativeai==0.8.3
+google-genai==1.56.0
 
-# PDF generation
-fpdf==1.7.2
+# Markdown to PDF conversion
+markdown==3.7
+pdfkit==1.0.0
 
 # Environment variables
-python-dotenv==1.0.1
+python-dotenv==1.2.1
 
 # Additional utilities
-requests==2.31.0
+requests==2.32.5
