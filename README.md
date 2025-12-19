@@ -1,43 +1,42 @@
 # YouTube Sermon Discussion Guide Generator
 
-A Python script that automatically generates small group leader discussion guides from YouTube sermon videos. It uses AI (Google Gemini and ChatGPT) to create comprehensive, thoughtful discussion materials and exports them as PDF files.
+A Python script that automatically generates small group leader discussion guides from YouTube sermon videos. It uses AI (Google Gemini) to create comprehensive, thoughtful discussion materials and exports them as professionally formatted PDF files.
 
 ## Features
 
 - 📺 Retrieves transcripts from YouTube videos automatically
-- 🤖 Generates discussion guides using both Google Gemini and ChatGPT
-- ⚖️ Evaluates and selects the best guide
-- 📄 Exports the final guide as a professionally formatted PDF
+- 🤖 Generates discussion guides using Google Gemini AI
+- 📄 Exports guides as professionally formatted PDFs with Markdown-to-PDF conversion
 - 🎯 Creates discussion questions, application points, and prayer topics
+- 📅 Automatically includes video title and publication date in the guide
 
 ## Prerequisites
 
 - Python 3.8 or higher
-- OpenAI API key (for ChatGPT)
 - Google Gemini API key
+- wkhtmltopdf (for PDF generation)
 
 ## Installation
 
 1. Clone or download this repository
 
-2. Install required dependencies:
+2. Install wkhtmltopdf:
+   - **Windows**: Download and install from https://wkhtmltopdf.org/downloads.html
+   - **Mac**: `brew install wkhtmltopdf`
+   - **Linux**: `sudo apt-get install wkhtmltopdf`
+
+3. Install required Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up your API keys:
-   - Copy `.env.example` to `.env`
-   - Add your OpenAI API key (get it from: https://platform.openai.com/api-keys)
-   - Add your Gemini API key (get it from: https://makersuite.google.com/app/apikey)
+4. Set up your API key:
+   - Create a `.env` file in the project directory
+   - Add your Gemini API key (get it from: https://aistudio.google.com/app/apikey)
 
 ```bash
-cp .env.example .env
-```
-
-Then edit `.env` with your actual API keys:
-```
-OPENAI_API_KEY=sk-your-actual-openai-key
-GEMINI_API_KEY=your-actual-gemini-key
+# Create .env file
+echo "GEMINI_API_KEY=your-actual-gemini-key" > .env
 ```
 
 ## Usage
@@ -54,13 +53,13 @@ Enter YouTube video URL: https://www.youtube.com/watch?v=VIDEO_ID
 
 The script will:
 1. Fetch the video transcript
-2. Generate discussion guides using both ChatGPT and Gemini
-3. Evaluate which guide is better
-4. Export the best guide as a PDF file
+2. Extract the video title and publication date
+3. Generate a discussion guide using Google Gemini
+4. Export the guide as a professionally formatted PDF
 
 The output PDF will be saved in the same directory with a filename like:
 ```
-discussion_guide_VIDEO_ID_20251218_143022.pdf
+Kings Church - Small Group Discussion Guide - Week of December 15, 2025.pdf
 ```
 
 ## Generated Guide Structure
@@ -82,30 +81,33 @@ Each discussion guide includes:
 
 ## Requirements
 
-- The YouTube video must have captions/subtitles available (either auto-generated or manual)
-- You need valid API keys for both OpenAI and Google Gemini
-- Internet connection for API calls
+- The YouTube video must have English captions/subtitles available (either auto-generated or manual)
+- You need a valid API key for Google Gemini
+- wkhtmltopdf must be installed on your system
+- Internet connection for API calls and transcript retrieval
 
 ## Troubleshooting
 
 **Transcript not available:**
-- Ensure the video has captions enabled
+- Ensure the video has English captions enabled
 - Some videos may have captions disabled by the creator
 
 **API errors:**
-- Verify your API keys are correct in the `.env` file
-- Check that you have API credits/quota available
+- Verify your GEMINI_API_KEY is correct in the `.env` file
+- Check that you have API quota available
 - Ensure you have internet connectivity
 
 **PDF generation issues:**
+- Verify wkhtmltopdf is installed and accessible
+- On Windows, the script expects wkhtmltopdf at: `C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe`
+- Update the path in [main.py](main.py#L27) if your installation location differs
 - Make sure you have write permissions in the directory
-- Check that the fpdf library is properly installed
 
 ## Cost Considerations
 
-- OpenAI API (GPT-4): Approximately $0.01-0.03 per guide
-- Google Gemini API: Has a generous free tier
-- Both services charge based on tokens used
+- Google Gemini API: Has a generous free tier for personal use
+- The API charges based on tokens used (input + output)
+- Typical cost per guide is minimal or free under the free tier limits
 
 ## License
 
