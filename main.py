@@ -44,9 +44,12 @@ def extract_video_id(youtube_url):
     return youtube_url
 
 
-def get_youtube_transcript_ytdlp(video_url):
-    """Retrieve transcript using yt-dlp as a fallback method."""
-    print("\nTrying alternative method with yt-dlp...")
+def get_youtube_transcript(video_url):
+    """Retrieve transcript from YouTube video."""
+    print("Fetching YouTube transcript...")
+    
+    video_id = extract_video_id(video_url)
+    print(f"Video ID: {video_id}")
     
     try:
         ydl_opts = {
@@ -61,96 +64,42 @@ def get_youtube_transcript_ytdlp(video_url):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             
-            # Check for subtitles
-            if 'subtitles' in info and 'en' in info['subtitles']:
-                sub_url = info['subtitles']['en'][0]['url']
-            elif 'automatic_captions' in info and 'en' in info['automatic_captions']:
-                sub_url = info['automatic_captions']['en'][0]['url']
+            # Check for automatically generated captions
+            if 'automatic_captions' in info and 'en' in info['automatic_captions']:
+                englishCaptions = info['automatic_captions']['en']
+                
+                # get the captions in ttml format if available
+                ttml_captions = [cap for cap in englishCaptions if cap['ext'] == 'ttml']
+                if ttml_captions:
+                    transcript_url = ttml_captions[0]['url']
+                else:
+                    print("Preferred ttml format not found; exiting.")
+                    return None
             else:
-                print("No English subtitles found")
+                print("No English transcript found")
                 return None
             
             # Download and parse the subtitle file
             import urllib.request
-            with urllib.request.urlopen(sub_url) as response:
-                subtitle_data = response.read().decode('utf-8')
+            with urllib.request.urlopen(transcript_url) as response:
+                transcript_data = response.read().decode('utf-8')
             
-            # Parse the subtitle format (usually JSON for YouTube)
             import xml.etree.ElementTree as ET
             try:
-                # Try parsing as XML first (YouTube's format)
-                root = ET.fromstring(subtitle_data)
-                transcript_text = ' '.join([text.text for text in root.findall('.//text') if text.text])
+                # Try parsing as the preferred ttml format first (YouTube's format)
+                xml_tree = ET.ElementTree(ET.fromstring(transcript_data))
+                root = xml_tree.getroot()
+                transcript_text = ' '.join([p.text for p in root.iter('{http://www.w3.org/ns/ttml}p') if p.text])
             except:
-                # If XML fails, try JSON format
-                import json
-                sub_json = json.loads(subtitle_data)
-                transcript_text = ' '.join([event['segs'][0]['utf8'] for event in sub_json.get('events', []) if 'segs' in event])
-            
+                print("Failed to parse ttml format; exiting.")
+                return None
+
             print(f"✓ Transcript retrieved via yt-dlp ({len(transcript_text)} characters)")
             return transcript_text
             
     except Exception as e:
-        print(f"yt-dlp method also failed: {type(e).__name__}: {e}")
+        print(f"yt-dlp method failed: {type(e).__name__}: {e}")
         return None
-
-
-def get_youtube_transcript(video_url):
-    """Retrieve transcript from YouTube video."""
-    print("Fetching YouTube transcript...")
-    
-    video_id = extract_video_id(video_url)
-    print(f"Video ID: {video_id}")
-    
-    try:
-        # Try the simple get_transcript method first with different language codes
-        language_codes = ['en', 'en-US', 'en-GB', 'a.en']
-        
-        for lang_code in language_codes:
-            try:
-                print(f"Trying language code: {lang_code}")
-                transcript_data = YouTubeTranscriptApi.get_transcript(
-                    video_id, 
-                    languages=[lang_code],
-                    preserve_formatting=True
-                )
-                transcript_text = ' '.join([entry['text'] for entry in transcript_data])
-                print(f"✓ Transcript retrieved ({len(transcript_text)} characters)")
-                return transcript_text
-            except Exception as lang_error:
-                print(f"  Failed with {lang_code}: {type(lang_error).__name__}")
-                continue
-        
-        # If direct method fails, try the list_transcripts approach
-        print("\nTrying list_transcripts method...")
-        transcript_list_obj = YouTubeTranscriptApi.list_transcripts(video_id)
-        
-        print("\nAvailable transcripts:")
-        for transcript in transcript_list_obj:
-            print(f"  - {transcript.language} ({transcript.language_code}) - {'Auto-generated' if transcript.is_generated else 'Manual'}")
-            try:
-                print(f"    Attempting to fetch...")
-                transcript_data = transcript.fetch()
-                transcript_text = ' '.join([entry['text'] for entry in transcript_data])
-                print(f"✓ Transcript retrieved ({len(transcript_text)} characters)")
-                return transcript_text
-            except Exception as fetch_error:
-                print(f"    Failed to fetch: {type(fetch_error).__name__}: {fetch_error}")
-                continue
-        
-        print("❌ youtube-transcript-api methods failed")
-        
-        # Try yt-dlp as fallback
-        return get_youtube_transcript_ytdlp(video_url)
-        
-    except (TranscriptsDisabled, NoTranscriptFound, VideoUnavailable):
-        print(f"\n❌ Transcripts unavailable via youtube-transcript-api")
-        # Try yt-dlp as fallback
-        return get_youtube_transcript_ytdlp(video_url)
-    except Exception as e:
-        print(f"\n❌ Error with youtube-transcript-api: {type(e).__name__}: {e}")
-        # Try yt-dlp as fallback
-        return get_youtube_transcript_ytdlp(video_url)
 
 
 def create_discussion_guide_prompt(transcript):
