@@ -1,9 +1,8 @@
 """
-YouTube Sermon Discussion Guide Generator
+Sermon Discussion Guide Generator
 
-This script retrieves transcripts from YouTube sermon videos and generates
-small group leader discussion guides using Google Gemini and ChatGPT.
-It then evaluates both responses and creates a final PDF document.
+This script retrieves transcripts from YouTube sermon videos or local text files and generates
+small group leader discussion guides using Google Gemini.
 """
 
 import os
@@ -16,6 +15,9 @@ import pdfkit
 import re
 from datetime import datetime
 import yt_dlp
+
+use_temporary_gemini_markdown_cache = False
+use_temporary_html_cache = False
 
 # Load environment variables
 load_dotenv()
@@ -115,32 +117,32 @@ def create_discussion_guide_prompt(transcript):
 
 The guide should follow the SOAP structure (Scripture, Observation, Application, Prayer) and include the following elements:
 1. Scripture: 
-    a. a brief summary of the sermon's main message and the sermon passage (2-3 sentences)
+    a. a brief summary of the sermon passage (focus more on summarizing the sermon's passage than the sermon itself) (2-3 sentences)
     b. Key themes and scripture references mentioned
 3. Observation:
     a. 5-7 thoughtful discussion questions that:
-        - Aid in answering the following questions each week (but can phrase differently as needed for the particular sermon passage):
-            1. What do we learn about God? 
-            2. What do we learn about humanity?
-            3. What is God inviting us to believe or obey in this passage?
         - Help participants reflect on the sermon's passage
         - Connect the sermon and its passage to personal application
         - Encourage deeper theological exploration
         - Foster group conversation
+         - Aid in answering the following questions each week (but can phrase differently as needed for the particular sermon passage):
+            1. What do we learn about God? 
+            2. What do we learn about humanity?
+            3. What is God inviting us to believe or obey in this passage?
 4. Application:
     a. A practical application challenge for the week
 5. Prayer:
     a. Suggested closing prayer points
 
-Lay out the guide in a clear, easy-to-read structure that a small group leader can follow.
-
-The output must be in Markdown format.
+Lay out the guide in a clear, easy-to-read structure that a small group leader can follow. Please do not include any reference to the AI or the tool used to generate the guide. Also do not reference the prompt itself in the guide (e.g. "This guide is intended for a 20-40 minute discussion", etc.)
 
 Please note that the sermon transcript may include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
 
+The output must be in Markdown format.
+
 BEGIN SERMON TRANSCRIPT.
 
-{transcript[:8000]}
+{transcript}
 
 END SERMON TRANSCRIPT.
 Please provide a well-structured discussion guide."""
@@ -169,30 +171,61 @@ def export_to_pdf(guide_markdown, video_title, video_publish_date, output_filena
     print(f"\nExporting to PDF: {output_filename}")
     
     try:
-        # Add metadata header to the markdown
-        metadata = f"""---
-**{video_title}**
-*{video_publish_date.strftime("%B %d, %Y")}*
+        # When enabled, save/load HTML to a cache file to avoid regenerating (used for testing)
+        html_doc = None
+        if (use_temporary_html_cache):
+            html_filename = 'discussion_guide.html'
+            
+            if os.path.exists(html_filename):
+                print(f"Loading existing HTML from {html_filename}")
+                with open(html_filename, 'r', encoding='utf-8') as f:
+                    html_doc = f.read()
+                print("✓ HTML loaded from file")
 
----
-
-"""
-        
-        full_markdown = metadata + guide_markdown
-        
-        # Convert markdown to HTML
-        html_content = markdown.markdown(
-            full_markdown,
-            extensions=['extra', 'nl2br', 'sane_lists']
-        )
-        
-        # Wrap in a complete HTML document with styling
-        html_doc = f"""<!DOCTYPE html>
+        if not html_doc:
+            # Get absolute path to logo file for wkhtmltopdf
+            logo_path = os.path.abspath('assets/Kings Primary Black.png')
+            
+            # Convert to file:// URL format for wkhtmltopdf
+            logo_url = f'file:///{logo_path.replace(os.sep, "/")}'
+            
+            # Get absolute paths to font files
+            assets_dir = os.path.abspath('assets')
+            mont_heavy = f'file:///{os.path.join(assets_dir, "Mont-HeavyDEMO.otf").replace(os.sep, "/")}'
+            mont_extralight = f'file:///{os.path.join(assets_dir, "Mont-ExtraLightDEMO.otf").replace(os.sep, "/")}'
+            gotha_black = f'file:///{os.path.join(assets_dir, "GothaProBla.otf").replace(os.sep, "/")}'
+            gotha_medium = f'file:///{os.path.join(assets_dir, "GothaProMed.otf").replace(os.sep, "/")}'
+            
+            # Convert markdown to HTML
+            html_content = markdown.markdown(
+                guide_markdown,
+                extensions=['extra', 'nl2br', 'sane_lists']
+            )
+            
+            # Wrap in a complete HTML document with styling
+            html_doc = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <title>Small Group Discussion Guide</title>
     <style>
+        @font-face {{
+            font-family: 'Montserrat Heavy';
+            src: url('{mont_heavy}') format('opentype');
+        }}
+        @font-face {{
+            font-family: 'Montserrat ExtraLight';
+            src: url('{mont_extralight}') format('opentype');
+        }}
+        @font-face {{
+            font-family: 'Gotham Pro Black';
+            src: url('{gotha_black}') format('opentype');
+        }}
+        @font-face {{
+            font-family: 'Gotham Pro Medium';
+            src: url('{gotha_medium}') format('opentype');
+        }}
+        
         @page {{
             size: letter;
             margin: 1in;
@@ -200,29 +233,35 @@ def export_to_pdf(guide_markdown, video_title, video_publish_date, output_filena
                 content: counter(page);
             }}
         }}
+
         body {{
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Montserrat ExtraLight', Arial, sans-serif;
+            font-weight: 800;
+            font-style: normal;
             font-size: 11pt;
             line-height: 1.6;
             color: #333;
         }}
         h1 {{
+            font-family: 'Montserrat Heavy', sans-serif;
             font-size: 20pt;
-            font-weight: bold;
+            font-weight: normal;
             margin-top: 0.5em;
             margin-bottom: 0.3em;
             color: #1a1a1a;
         }}
         h2 {{
+            font-family: 'Gotham Pro Black', sans-serif;
             font-size: 16pt;
-            font-weight: bold;
+            font-weight: normal;
             margin-top: 0.8em;
             margin-bottom: 0.3em;
             color: #2a2a2a;
         }}
         h3 {{
+            font-family: 'Gotham Pro Medium', sans-serif;
             font-size: 13pt;
-            font-weight: bold;
+            font-weight: normal;
             margin-top: 0.6em;
             margin-bottom: 0.2em;
             color: #3a3a3a;
@@ -245,7 +284,8 @@ def export_to_pdf(guide_markdown, video_title, video_publish_date, output_filena
             margin: 1em 0;
         }}
         strong {{
-            font-weight: bold;
+            font-family: 'Gotham Pro Medium', sans-serif;
+            font-weight: 700;
         }}
         em {{
             font-style: italic;
@@ -260,10 +300,26 @@ def export_to_pdf(guide_markdown, video_title, video_publish_date, output_filena
     </style>
 </head>
 <body>
+    <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+        <tr>
+            <td style="width: 50%; vertical-align: top; padding: 0;">
+                <img src="{logo_url}" alt="Kings Church Logo" style="max-height: 80px; display: block;">
+            </td>
+            <td style="width: 50%; vertical-align: top; text-align: right; padding: 0;">
+                <em style="white-space: nowrap;">{video_publish_date.strftime("%B %d, %Y")}</em>
+            </td>
+        </tr>
+    </table>
+    <hr style="border: none; border-top: 1px solid #ccc; margin: 1em 0;">
     {html_content}
 </body>
 </html>"""
-        
+
+        if use_temporary_html_cache and not os.path.exists(html_filename):
+            with open(html_filename, 'w', encoding='utf-8') as f:
+                f.write(html_doc)
+            print(f"✓ HTML saved to {html_filename}")
+
         # Convert HTML to PDF using pdfkit
         options = {
             'page-size': 'Letter',
@@ -388,14 +444,40 @@ def generate_sermon_discussion_guide_pdf(input_source):
         
         # Use filename and current date for metadata
         video_title = os.path.splitext(os.path.basename(input_source))[0]
-        video_publish_date = datetime.now()
+
+        # Attempt to load publication date from file name (format: MM.DD.YY)
+        filename = os.path.splitext(os.path.basename(input_source))[0]
+        date_match = re.search(r'(\d{2})\.(\d{2})\.(\d{2})', filename)
+        if date_match:
+            month, day, year = map(int, date_match.groups())
+            year += 2000  # Convert YY to YYYY
+            video_publish_date = datetime(year, month, day)
+        else:
+            video_publish_date = datetime.now()
     
     prompt = create_discussion_guide_prompt(transcript)
     
-    discussion_guide = generate_with_gemini(prompt)
+    # When enabled, save/load discussion guide markdown to a cache file to avoid regenerating (used for testing)
+    discussion_guide = None
+    if use_temporary_gemini_markdown_cache:
+        markdown_filename = f'discussion_guide_gemini.md'
+        
+        if os.path.exists(markdown_filename):
+            print(f"Loading existing discussion guide from {markdown_filename}")
+            with open(markdown_filename, 'r', encoding='utf-8') as f:
+                discussion_guide = f.read()
+            print("✓ Discussion guide loaded from file")
+
     if not discussion_guide:
-        print("Error: Gemini failed to generate guide.")
-        return
+        discussion_guide = generate_with_gemini(prompt)
+        if not discussion_guide:
+            print("Error: Gemini failed to generate guide.")
+            return
+
+    if use_temporary_html_cache and not os.path.exists(markdown_filename):
+        with open(markdown_filename, 'w', encoding='utf-8') as f:
+            f.write(discussion_guide)
+        print(f"✓ Discussion guide saved to {markdown_filename}")
 
     output_filename = f'Kings Church - Small Group Discussion Guide - Week of {video_publish_date.strftime("%B %d, %Y")}.pdf'
     export_to_pdf(discussion_guide, video_title, video_publish_date, output_filename)
