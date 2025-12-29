@@ -113,22 +113,30 @@ def create_discussion_guide_prompt(transcript):
     """Create the prompt for generating a discussion guide."""
     return f"""Based on the following sermon transcript, create a small group leader discussion guide suitable for a 20-40 minute discussion. 
 
-The guide should include:
-1. A brief summary of the sermon's main message and the sermon passage (2-3 sentences)
-2. Key themes and scripture references mentioned
-3. 5-7 thoughtful discussion questions that:
-   - Help participants reflect on the sermon's passage
-   - Connect the sermon and its passage to personal application
-   - Encourage deeper theological exploration
-   - Foster group conversation
-4. A practical application challenge for the week
-5. Suggested closing prayer points
+The guide should follow the SOAP structure (Scripture, Observation, Application, Prayer) and include the following elements:
+1. Scripture: 
+    a. a brief summary of the sermon's main message and the sermon passage (2-3 sentences)
+    b. Key themes and scripture references mentioned
+3. Observation:
+    a. 5-7 thoughtful discussion questions that:
+        - Aid in answering the following questions each week (but can phrase differently as needed for the particular sermon passage):
+            1. What do we learn about God? 
+            2. What do we learn about humanity?
+            3. What is God inviting us to believe or obey in this passage?
+        - Help participants reflect on the sermon's passage
+        - Connect the sermon and its passage to personal application
+        - Encourage deeper theological exploration
+        - Foster group conversation
+4. Application:
+    a. A practical application challenge for the week
+5. Prayer:
+    a. Suggested closing prayer points
 
 Lay out the guide in a clear, easy-to-read structure that a small group leader can follow.
 
 The output must be in Markdown format.
 
-Please note that the sermon transcript will likely include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
+Please note that the sermon transcript may include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
 
 BEGIN SERMON TRANSCRIPT.
 
