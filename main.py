@@ -284,42 +284,111 @@ def export_to_pdf(guide_markdown, video_title, video_publish_date, output_filena
         return None
 
 
+def is_youtube_url(input_string):
+    """Check if the input string is a YouTube URL."""
+    youtube_patterns = [
+        r'(?:https?:\/\/)?(?:www\.)?youtube\.com',
+        r'(?:https?:\/\/)?(?:www\.)?youtu\.be',
+    ]
+    return any(re.search(pattern, input_string) for pattern in youtube_patterns)
+
+
+def read_local_transcript(file_path):
+    """Read transcript from a local text file.
+    
+    Expected format: 4-tuples where each tuple consists of:
+    - Line 1: Timestamp range
+    - Line 2: Speaker
+    - Line 3: Transcript text
+    - Line 4: Blank line
+    """
+    print(f"Reading transcript from local file: {file_path}")
+    
+    try:
+        if not os.path.isfile(file_path):
+            print(f"Error: File not found: {file_path}")
+            return None
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        # Parse 4-tuples and extract transcript text (every 3rd line in groups of 4)
+        transcript_lines = []
+        for i in range(0, len(lines), 4):
+            if i + 2 < len(lines):  # Ensure we have at least 3 lines
+                transcript_text = lines[i + 2].strip()  # 3rd line (index 2) is the transcript text
+                if transcript_text:  # Only add non-empty lines
+                    transcript_lines.append(transcript_text)
+        
+        transcript = '\n'.join(transcript_lines)
+        
+        print(f"✓ Transcript loaded from file ({len(transcript)} characters)")
+        return transcript
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return None
+
+
 def main():
     """Main function to orchestrate the discussion guide generation."""
-    print("=== YouTube Sermon Discussion Guide Generator ===\n")
+    print("=== Sermon Discussion Guide Generator ===\n")
     
-    # Get video URLs from command line arguments
-    video_urls = sys.argv[1:]
+    # Get inputs from command line arguments
+    inputs = sys.argv[1:]
     
     # If no command line arguments, prompt for input
-    if not video_urls:
-        video_url = input("Enter YouTube video URL: ").strip()
-        if video_url:
-            video_urls = [video_url]
+    if not inputs:
+        user_input = input("Enter YouTube video URL or local transcript file path: ").strip()
+        if user_input:
+            inputs = [user_input]
         else:
-            print("Error: No URL provided")
+            print("Error: No input provided")
             return
     
-    # Process each video URL
-    total = len(video_urls)
-    for idx, video_url in enumerate(video_urls, 1):
+    # Process each input
+    total = len(inputs)
+    for idx, input_item in enumerate(inputs, 1):
         if total > 1:
             print(f"\n{'='*60}")
-            print(f"Processing video {idx} of {total}")
+            print(f"Processing input {idx} of {total}")
             print(f"{'='*60}\n")
         
-        generate_sermon_discussion_guide_pdf(video_url)
+        generate_sermon_discussion_guide_pdf(input_item)
 
 
-def generate_sermon_discussion_guide_pdf(video_url):
-    if not video_url:
-        print("Error: No URL provided")
+def generate_sermon_discussion_guide_pdf(input_source):
+    if not input_source:
+        print("Error: No input provided")
         return
     
-    transcript = get_youtube_transcript(video_url)
-    if not transcript:
-        print("Failed to retrieve transcript. Exiting.")
-        return
+    # Determine if input is a YouTube URL or local file
+    if is_youtube_url(input_source):
+        # YouTube URL processing
+        transcript = get_youtube_transcript(input_source)
+        if not transcript:
+            print("Failed to retrieve transcript. Exiting.")
+            return
+        
+        # Get the youtube video's title and publication date to include in the metadata
+        ydl_opts = {'quiet': True, 'skip_download': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(input_source, download=False)
+            video_title = info_dict.get('title', 'Unknown Title')
+            video_publish_date = info_dict.get('upload_date', 'Unknown Date')
+            if video_publish_date != 'Unknown Date':
+                video_publish_date = datetime.strptime(video_publish_date, '%Y%m%d')
+            else:
+                video_publish_date = datetime.now()
+    else:
+        # Local file processing
+        transcript = read_local_transcript(input_source)
+        if not transcript:
+            print("Failed to read transcript from file. Exiting.")
+            return
+        
+        # Use filename and current date for metadata
+        video_title = os.path.splitext(os.path.basename(input_source))[0]
+        video_publish_date = datetime.now()
     
     prompt = create_discussion_guide_prompt(transcript)
     
@@ -327,17 +396,6 @@ def generate_sermon_discussion_guide_pdf(video_url):
     if not discussion_guide:
         print("Error: Gemini failed to generate guide.")
         return
-    
-    # get the youtube video's title and publication date to include in the metadata
-    ydl_opts = {'quiet': True, 'skip_download': True}
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(video_url, download=False)
-        video_title = info_dict.get('title', 'Unknown Title')
-        video_publish_date = info_dict.get('upload_date', 'Unknown Date')
-        if video_publish_date != 'Unknown Date':
-            video_publish_date = datetime.strptime(video_publish_date, '%Y%m%d')
-        else:
-            video_publish_date = datetime.now()
 
     output_filename = f'Kings Church - Small Group Discussion Guide - Week of {video_publish_date.strftime("%B %d, %Y")}.pdf'
     export_to_pdf(discussion_guide, video_title, video_publish_date, output_filename)
