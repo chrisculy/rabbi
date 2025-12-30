@@ -11,12 +11,13 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 import markdown
+import mdformat
 import pdfkit
 import re
 from datetime import datetime
 import yt_dlp
 
-use_temporary_gemini_markdown_cache = False
+use_temporary_gemini_markdown_cache = True
 use_temporary_html_cache = False
 
 # Load environment variables
@@ -116,6 +117,9 @@ def create_discussion_guide_prompt(transcript):
     return f"""Based on the following sermon transcript, create a small group leader discussion guide suitable for a 20-40 minute discussion. 
 
 The guide should follow the SOAP structure (Scripture, Observation, Application, Prayer) and include the following elements:
+
+A title in the format "Small Group Discussion Guide: [Sermon Passage]"
+
 1. Scripture: 
     a. a brief summary of the sermon passage (focus more on summarizing the sermon's passage than the sermon itself) (2-3 sentences)
     b. Key themes and scripture references mentioned
@@ -134,7 +138,7 @@ The guide should follow the SOAP structure (Scripture, Observation, Application,
 5. Prayer:
     a. Suggested closing prayer points
 
-Lay out the guide in a clear, easy-to-read structure that a small group leader can follow. Please do not include any reference to the AI or the tool used to generate the guide. Also do not reference the prompt itself in the guide (e.g. "This guide is intended for a 20-40 minute discussion", etc.)
+Lay out the guide in a clear, easy-to-read structure that a small group leader can follow. Please do not reference the structure of the guide in the guide itself (e.g. "This guide is intended for a 20-40 minute discussion", "Use this guide to facilitate conversation", etc.)
 
 Please note that the sermon transcript may include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
 
@@ -155,11 +159,14 @@ def generate_with_gemini(prompt):
     try:
         response = client.models.generate_content(
             model='gemini-3-flash-preview',
-            contents=prompt
+            contents=prompt,
+            config={
+                "temperature": 0.8,
+            }
         )
         
         guide = response.text
-        print("✓ Gemini guide generated")
+        
         return guide
     except Exception as e:
         print(f"Error with Gemini: {e}")
@@ -474,7 +481,29 @@ def generate_sermon_discussion_guide_pdf(input_source):
             print("Error: Gemini failed to generate guide.")
             return
 
-    if use_temporary_html_cache and not os.path.exists(markdown_filename):
+    # Format the markdown for consistency
+    try:
+        discussion_guide = mdformat.text(
+            discussion_guide,
+            options={
+                "wrap": "keep",
+                "number": True,
+                "end_of_line": "lf"
+            })
+
+        # Use regex to ensure all ordered and unordered lists have a single space after the marker
+        # Only modify lists that have MORE than one space after the marker
+        discussion_guide = re.sub(r'^(\s*[\*\-\+])\s{2,}', r'\1 ', discussion_guide, flags=re.MULTILINE)
+        discussion_guide = re.sub(r'^(\s*\d+\.)\s{2,}', r'\1 ', discussion_guide, flags=re.MULTILINE)
+
+        # Ensure there is a newline before each heading (only if not already present)
+        discussion_guide = re.sub(r'(?<!\n)\n(#{1,6}\s)', r'\n\n\1', discussion_guide)
+        print("✓ Gemini guide generated and formatted")
+    except Exception as format_error:
+        print(f"Warning: Markdown formatting failed: {format_error}")
+        print("✓ Gemini guide generated (without formatting)")
+
+    if use_temporary_gemini_markdown_cache and not os.path.exists(markdown_filename):
         with open(markdown_filename, 'w', encoding='utf-8') as f:
             f.write(discussion_guide)
         print(f"✓ Discussion guide saved to {markdown_filename}")
