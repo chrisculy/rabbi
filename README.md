@@ -1,4 +1,4 @@
-# Sermon Discussion Guide Generator
+# Rabbi - Small Group Guide Generator
 
 A Python script that automatically generates small group leader discussion guides from YouTube sermon videos or local transcript text files. It uses AI (Google Gemini) to create comprehensive, thoughtful discussion materials and exports them as professionally formatted PDF files with custom fonts and branding.
 

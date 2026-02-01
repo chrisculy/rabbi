@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Standalone script to generate discussion guide from transcript.
-Usage: python guide_generator.py <transcript_text>
+Usage: python guide_generator.py <transcript_file_path>
 Returns JSON: {"markdown": "..."}
 """
 import sys
@@ -56,7 +56,7 @@ def generate_with_gemini(prompt, api_key):
         client = genai.Client(api_key=api_key)
         
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-3-flash-preview',
             contents=prompt,
             config={"temperature": 0.8}
         )
@@ -77,16 +77,25 @@ def generate_with_gemini(prompt, api_key):
         guide = re.sub(r'^(\s*\d+\.)\s{2,}', r'\1 ', guide, flags=re.MULTILINE)
         guide = re.sub(r'(?<!\n)\n(#{1,6}\s)', r'\n\n\1', guide)
         
-        return guide
+        return guide, None
     except Exception as e:
-        return None
+        return None, str(e)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "No transcript provided"}))
+        print(json.dumps({"error": "No transcript file provided"}))
         sys.exit(1)
     
-    transcript = sys.argv[1]
+    transcript_file = sys.argv[1]
+    
+    # Read transcript from file
+    try:
+        with open(transcript_file, 'r', encoding='utf-8') as f:
+            transcript = f.read()
+    except Exception as e:
+        print(json.dumps({"error": f"Failed to read transcript file: {str(e)}"}))
+        sys.exit(1)
+    
     api_key = os.environ.get('GEMINI_API_KEY')
     
     if not api_key:
@@ -94,10 +103,11 @@ if __name__ == "__main__":
         sys.exit(1)
     
     prompt = create_discussion_guide_prompt(transcript)
-    markdown = generate_with_gemini(prompt, api_key)
+    markdown, error = generate_with_gemini(prompt, api_key)
     
     if markdown:
         print(json.dumps({"markdown": markdown}))
     else:
-        print(json.dumps({"error": "Failed to generate guide"}))
+        error_msg = f"Failed to generate guide: {error}" if error else "Failed to generate guide"
+        print(json.dumps({"error": error_msg}))
         sys.exit(1)

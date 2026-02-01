@@ -5,7 +5,7 @@ import { getGuide, deleteGuide } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,7 +13,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const guide = await getGuide(params.id, session.user.id);
+    const { id } = await params;
+    const guide = await getGuide(id, session.user.id);
 
     if (!guide) {
       return NextResponse.json({ error: 'Guide not found' }, { status: 404 });
@@ -31,7 +32,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -39,7 +40,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await deleteGuide(params.id, session.user.id);
+    const { id } = await params;
+    await deleteGuide(id, session.user.id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
