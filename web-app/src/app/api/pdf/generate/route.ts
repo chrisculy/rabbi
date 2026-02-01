@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
-import fs from 'fs/promises';
-
-const execAsync = promisify(exec);
+import { generatePdf } from '@/lib/pdf-generator';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,34 +19,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const tempDir = path.join(process.cwd(), 'temp');
-    const markdownPath = path.join(tempDir, `guide-${timestamp}.md`);
-    const outputPath = path.join(tempDir, `guide-${timestamp}.pdf`);
-
-    // Ensure temp directory exists
-    await fs.mkdir(tempDir, { recursive: true });
-
-    // Write markdown to temporary file
-    await fs.writeFile(markdownPath, markdown, 'utf-8');
-
-    // Call Python script
-    const scriptPath = path.join(process.cwd(), 'python-scripts', 'pdf_generator.py');
-    const date = new Date().toISOString();
-
-    const command = `python "${scriptPath}" "${markdownPath}" "${title}" "${date}" "${outputPath}"`;
-
-    await execAsync(command, {
-      maxBuffer: 50 * 1024 * 1024, // 50MB buffer
+    // Generate PDF using Puppeteer
+    const pdfBuffer = await generatePdf({
+      markdown,
+      title,
+      date: new Date(),
     });
-
-    // Read generated PDF
-    const pdfBuffer = await fs.readFile(outputPath);
-
-    // Clean up temp files
-    await fs.unlink(outputPath);
-    await fs.unlink(markdownPath);
 
     // Return PDF as streaming response
     return new NextResponse(pdfBuffer, {
@@ -70,4 +43,4 @@ export async function POST(request: NextRequest) {
 }
 
 // Increase timeout for PDF generation
-export const maxDuration = 120; // 120 seconds
+export const maxDuration = 60; // 60 seconds

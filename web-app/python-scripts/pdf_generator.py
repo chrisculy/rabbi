@@ -35,7 +35,7 @@ def export_to_pdf_file(guide_markdown, video_title, video_publish_date, output_f
     mont_heavy = file_to_base64_url(os.path.join(assets_dir, "Mont-HeavyDEMO.otf"), 'font/otf')
     mont_extralight = file_to_base64_url(os.path.join(assets_dir, "Mont-ExtraLightDEMO.otf"), 'font/otf')
     gotha_black = file_to_base64_url(os.path.join(assets_dir, "GothaProBla.otf"), 'font/otf')
-    gotha_medium = file_to_base64_url(os.path.join(assets_dir, "GotaProMed.otf"), 'font/otf')
+    gotha_medium = file_to_base64_url(os.path.join(assets_dir, "GothaProMed.otf"), 'font/otf')
     
     # Convert markdown to HTML
     html_content = markdown.markdown(
