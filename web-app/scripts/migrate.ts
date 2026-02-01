@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 // Load environment variables from .env.local
 console.log(`🔧 Loading environment variables from .env.local at ${path.join(__dirname, '../.env.local')}`);
-dotenv.config({ path: path.join(__dirname, '../../.env.local') });
+dotenv.config({ path: path.join(__dirname, '../.env.local') });
 
 async function migrate() {
   console.log('🚀 Starting database migration...');
