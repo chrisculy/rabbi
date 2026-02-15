@@ -29,31 +29,51 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install pg library
+        run: npm install pg
+      
       - name: Ping Supabase Database
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
         run: |
-          # Install PostgreSQL client
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          node << 'EOF'
+          const { Client } = require('pg');
           
-          # Perform a simple read-only query to keep the database active
-          # This query just checks the database version and doesn't modify any data
-          psql "$POSTGRES_URL" -c "SELECT version();" || {
-            echo "Failed to connect to database"
-            exit 1
+          async function pingDatabase() {
+            const client = new Client({
+              connectionString: process.env.POSTGRES_URL,
+              ssl: { rejectUnauthorized: false }
+            });
+            
+            try {
+              console.log('Connecting to database...');
+              await client.connect();
+              console.log('Connected successfully!');
+              
+              // Simple read-only query to check database version
+              const versionResult = await client.query('SELECT version()');
+              console.log('Database version:', versionResult.rows[0].version);
+              
+              // Count tables in public schema
+              const tableResult = await client.query(
+                "SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = 'public'"
+              );
+              console.log('Tables in public schema:', tableResult.rows[0].table_count);
+              
+              console.log('Successfully pinged database at', new Date().toISOString());
+              
+              await client.end();
+              process.exit(0);
+            } catch (error) {
+              console.error('Failed to connect to database:', error.message);
+              process.exit(1);
+            }
           }
           
-          echo "Successfully pinged database at $(date)"
-          
-      - name: Verify Connection
-        env:
-          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-        run: |
-          # Alternative simple query - just count tables in public schema
-          psql "$POSTGRES_URL" -c "SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = 'public';" || {
-            echo "Failed verification query"
-            exit 1
-          }
-          
-          echo "Database is active and responding"
+          pingDatabase();
+          EOF
