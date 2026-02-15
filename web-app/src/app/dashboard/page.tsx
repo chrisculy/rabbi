@@ -51,17 +51,6 @@ export default function Dashboard() {
       {/* Quick Actions */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Link
-          href="/dashboard/new/youtube"
-          className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-8 hover:border-blue-500 hover:bg-blue-50 transition"
-        >
-          <svg className="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-          <h3 className="text-lg font-semibold text-gray-900">New from YouTube</h3>
-          <p className="mt-1 text-sm text-gray-600">Fetch transcript from YouTube URL</p>
-        </Link>
-
-        <Link
           href="/dashboard/new/upload"
           className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-8 hover:border-blue-500 hover:bg-blue-50 transition"
         >
@@ -70,6 +59,17 @@ export default function Dashboard() {
           </svg>
           <h3 className="text-lg font-semibold text-gray-900">Upload Transcript</h3>
           <p className="mt-1 text-sm text-gray-600">Upload a local transcript file</p>
+        </Link>
+
+        <Link
+          href="/dashboard/new/youtube"
+          className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-8 hover:border-blue-500 hover:bg-blue-50 transition"
+        >
+          <svg className="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <h3 className="text-lg font-semibold text-gray-900">New from YouTube</h3>
+          <p className="mt-1 text-sm text-gray-600">Fetch transcript from YouTube URL</p>
         </Link>
       </div>
 
