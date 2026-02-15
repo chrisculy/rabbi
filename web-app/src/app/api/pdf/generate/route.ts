@@ -26,11 +26,19 @@ export async function POST(request: NextRequest) {
       date: new Date(),
     });
 
+    // Format filename with current date
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: '2-digit',
+    });
+    const filename = `Kings Church - Small Group Discussion Guide - Week of ${currentDate}.pdf`;
+
     // Return PDF as streaming response
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${title}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
   } catch (error) {
