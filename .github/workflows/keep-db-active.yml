@@ -1,0 +1,59 @@
+name: Keep Supabase Database Active
+
+# This workflow pings the Supabase database every 3 days to prevent it from
+# being paused on the free tier. It performs a simple read-only query.
+#
+# REQUIRED GITHUB SECRETS:
+# - POSTGRES_URL: The PostgreSQL connection string for your Supabase database
+#   Format: postgres://user:password@host:port/database
+#   You can find this in your Supabase project settings under "Database" > "Connection string"
+#   Make sure to use the "Connection pooling" string if available for better performance.
+#
+# To add this secret:
+# 1. Go to your GitHub repository
+# 2. Navigate to Settings > Secrets and variables > Actions
+# 3. Click "New repository secret"
+# 4. Name: POSTGRES_URL
+# 5. Value: Your Supabase connection string
+
+on:
+  # Run every 3 days at 2:00 AM UTC
+  schedule:
+    - cron: '0 2 */3 * *'
+  
+  # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  ping-database:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Supabase Database
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          # Install PostgreSQL client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          
+          # Perform a simple read-only query to keep the database active
+          # This query just checks the database version and doesn't modify any data
+          psql "$POSTGRES_URL" -c "SELECT version();" || {
+            echo "Failed to connect to database"
+            exit 1
+          }
+          
+          echo "Successfully pinged database at $(date)"
+          
+      - name: Verify Connection
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          # Alternative simple query - just count tables in public schema
+          psql "$POSTGRES_URL" -c "SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = 'public';" || {
+            echo "Failed verification query"
+            exit 1
+          }
+          
+          echo "Database is active and responding"
