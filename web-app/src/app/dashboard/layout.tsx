@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
@@ -19,6 +20,13 @@ export default function DashboardLayout({
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
+              <Image
+                src="/assets/kings.png"
+                alt="Rabbi Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10"
+              />
               <h1 className="text-2xl font-bold text-gray-900">
                 Rabbi - Small Group Guide Generator
               </h1>
