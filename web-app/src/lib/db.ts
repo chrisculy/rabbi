@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 // Create a connection pool
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
-  ssl: false,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 export async function query(text: string, params?: unknown[]) {

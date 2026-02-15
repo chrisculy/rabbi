@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  devIndicators: false,
+  /* config options here */
+  devIndicators: false, // Disable "Development" indicator in dev mode
+  // Ensure serverless functions can access external packages
+  serverExternalPackages: ['pg', 'shelljs'],
 };
 
 export default nextConfig;

@@ -11,18 +11,20 @@ export const authOptions: AuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'google' && profile) {
+      if (account?.provider === 'google' && profile && 'sub' in profile) {
         try {
+          const googleId = profile.sub as string;
+
           // Check if user exists
-          const existingUser = await getUser(profile.sub);
+          const existingUser = await getUser(googleId);
 
           if (existingUser) {
             // Update last login
-            await updateUserLastLogin(profile.sub);
+            await updateUserLastLogin(googleId);
           } else {
             // Create new user
             await createUser({
-              googleId: profile.sub,
+              googleId,
               email: user.email!,
               name: user.name || '',
               profilePictureUrl: user.image || undefined,
@@ -48,8 +50,8 @@ export const authOptions: AuthOptions = {
       return session;
     },
     async jwt({ token, account, profile }) {
-      if (account && profile) {
-        token.sub = profile.sub;
+      if (account && profile && 'sub' in profile) {
+        token.sub = profile.sub as string;
       }
       return token;
     },
