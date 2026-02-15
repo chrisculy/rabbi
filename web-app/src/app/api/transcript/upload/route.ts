@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { createGuide } from '@/lib/db';
-import { writeFile, unlink, mkdir } from 'fs/promises';
+import { readLocalTranscript } from '@/lib/transcript-fetcher';
 import path from 'path';
-import { fetchTranscript } from '@/lib/python-executor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,19 +31,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 });
     }
 
-    // Ensure temp directory exists
-    const tempDir = path.join(process.cwd(), 'temp');
-    await mkdir(tempDir, { recursive: true });
-
-    // Save file temporarily
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const tempPath = path.join(tempDir, `${Date.now()}-${file.name}`);
-    await writeFile(tempPath, buffer);
+    // Read file content
+    const fileContent = await file.text();
 
     try {
-      // Parse transcript using Python script
-      const result = await fetchTranscript(tempPath);
+      // Parse transcript from file content
+      const result = await readLocalTranscript(fileContent, file.name);
 
       // Save to database
       const guide = await createGuide({
@@ -56,9 +48,6 @@ export async function POST(request: NextRequest) {
         publishDate: result.date ? new Date(result.date) : undefined,
       });
 
-      // Clean up temp file
-      await unlink(tempPath);
-
       return NextResponse.json({
         success: true,
         guide: {
@@ -68,8 +57,6 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (error) {
-      // Clean up temp file on error
-      await unlink(tempPath);
       throw error;
     }
   } catch (error) {

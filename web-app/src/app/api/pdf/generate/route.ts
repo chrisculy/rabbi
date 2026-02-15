@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
     });
     const filename = `Kings Church - Small Group Discussion Guide - Week of ${currentDate}.pdf`;
 
-    // Return PDF as streaming response
-    return new NextResponse(pdfBuffer, {
+    // Return PDF as streaming response (convert Buffer to Uint8Array for NextResponse)
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,

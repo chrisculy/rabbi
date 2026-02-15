@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { fetchTranscript } from '@/lib/python-executor';
+import { fetchYoutubeTranscript } from '@/lib/transcript-fetcher';
 import { createGuide } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // Fetch transcript using Python script
-    const result = await fetchTranscript(url);
+    // Fetch transcript from YouTube
+    const result = await fetchYoutubeTranscript(url);
 
     // Save to database
     const guide = await createGuide({
