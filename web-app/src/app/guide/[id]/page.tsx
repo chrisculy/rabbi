@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 const MarkdownEditor = dynamic(() => import('@/components/MarkdownEditor'), {
@@ -194,7 +195,18 @@ export default function GuidePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
+      {/* Back to Dashboard Link */}
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+      >
+        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Dashboard
+      </Link>
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
