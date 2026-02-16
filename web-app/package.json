@@ -11,6 +11,7 @@
     "test:python": "tsx scripts/test-python.ts"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.7.5",
     "@google/genai": "^1.41.0",
     "@sparticuz/chromium": "^143.0.4",
     "@tailwindcss/typography": "^0.5.19",
