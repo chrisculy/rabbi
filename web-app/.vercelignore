@@ -55,6 +55,3 @@ temp/
 docs/
 *.md
 !README.md
-
-# Assets not needed for build
-assets/
