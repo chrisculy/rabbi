@@ -180,6 +180,7 @@ export async function generatePdf(options: PdfGeneratorOptions): Promise<Buffer>
   const browser = await puppeteer.launch({
     args: chromium.args,
     executablePath: await chromium.executablePath(),
+    headless: true
   });
 
   try {
