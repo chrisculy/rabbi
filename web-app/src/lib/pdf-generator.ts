@@ -179,9 +179,7 @@ export async function generatePdf(options: PdfGeneratorOptions): Promise<Buffer>
   // Launch Puppeteer and generate PDF
   const browser = await puppeteer.launch({
     args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
   });
 
   try {
