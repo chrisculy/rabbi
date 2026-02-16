@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { marked } from 'marked';
 import path from 'path';
 import fs from 'fs';
@@ -177,8 +178,10 @@ export async function generatePdf(options: PdfGeneratorOptions): Promise<Buffer>
 
   // Launch Puppeteer and generate PDF
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
 
   try {
