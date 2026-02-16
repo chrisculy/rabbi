@@ -176,10 +176,16 @@ export async function generatePdf(options: PdfGeneratorOptions): Promise<Buffer>
 </body>
 </html>`;
 
+  const chromiumPath = await chromium.executablePath();
+  console.log('Chromium executable path:', chromiumPath);
+  if (!chromiumPath) {
+    throw new Error('Chromium executable not found');
+  }
+
   // Launch Puppeteer and generate PDF
   const browser = await puppeteer.launch({
     args: chromium.args,
-    executablePath: await chromium.executablePath(),
+    executablePath: chromiumPath,
     headless: true
   });
 
