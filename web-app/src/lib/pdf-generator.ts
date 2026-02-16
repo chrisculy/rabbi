@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import { marked } from 'marked';
 import path from 'path';
 import fs from 'fs';
@@ -176,7 +176,8 @@ export async function generatePdf(options: PdfGeneratorOptions): Promise<Buffer>
 </body>
 </html>`;
 
-  const chromiumPath = await chromium.executablePath();
+  const remoteExecutablePath = "https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.x64.tar";
+  const chromiumPath = await chromium.executablePath(remoteExecutablePath);
   console.log('Chromium executable path:', chromiumPath);
   if (!chromiumPath) {
     throw new Error('Chromium executable not found');
