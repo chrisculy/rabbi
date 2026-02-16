@@ -27,7 +27,7 @@
     "next": "16.1.6",
     "next-auth": "^4.24.13",
     "pg": "^8.18.0",
-    "puppeteer-core": "^24.37.3",
+    "puppeteer-core": "^24.35.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "shelljs": "^0.10.0",
