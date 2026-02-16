@@ -184,7 +184,7 @@
    - `Mont-HeavyDEMO.otf`
    - `Mont-ExtraLightDEMO.otf`
    - `GothaProBla.otf`
-   - `GotaProMed.otf`
+   - `GothaProMed.otf`
 
 2. **Logo** (in `c:\code\rabbi\assets\`):
    - `Kings Primary Black.png`

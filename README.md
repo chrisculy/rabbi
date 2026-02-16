@@ -22,7 +22,7 @@ A Python script that automatically generates small group leader discussion guide
   - `Mont-HeavyDEMO.otf` (for h1 headings)
   - `Mont-ExtraLightDEMO.otf` (for body text)
   - `GothaProBla.otf` (for h2 headings)
-  - `GotaProMed.otf` (for h3 headings)
+  - `GothaProMed.otf` (for h3 headings)
 - Church logo: `assets/Kings Primary Black.png`
 
 ## Installation

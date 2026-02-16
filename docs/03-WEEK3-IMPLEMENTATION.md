@@ -505,7 +505,7 @@ def export_to_pdf_file(guide_markdown, video_title, video_publish_date, output_f
     mont_heavy = f'file:///{os.path.join(assets_dir, "Mont-HeavyDEMO.otf").replace(os.sep, "/")}'
     mont_extralight = f'file:///{os.path.join(assets_dir, "Mont-ExtraLightDEMO.otf").replace(os.sep, "/")}'
     gotha_black = f'file:///{os.path.join(assets_dir, "GothaProBla.otf").replace(os.sep, "/")}'
-    gotha_medium = f'file:///{os.path.join(assets_dir, "GotaProMed.otf").replace(os.sep, "/")}'
+    gotha_medium = f'file:///{os.path.join(assets_dir, "GothaProMed.otf").replace(os.sep, "/")}'
     
     # Convert markdown to HTML
     html_content = markdown.markdown(
