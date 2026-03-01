@@ -49,7 +49,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4">
         <Link
           href="/dashboard/new/upload"
           className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-8 hover:border-blue-500 hover:bg-blue-50 transition"
@@ -61,6 +61,7 @@ export default function Dashboard() {
           <p className="mt-1 text-sm text-gray-600">Upload a local transcript file</p>
         </Link>
 
+        {/* YouTube option — commented out, restore when ready
         <Link
           href="/dashboard/new/youtube"
           className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-8 hover:border-blue-500 hover:bg-blue-50 transition"
@@ -71,6 +72,7 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-gray-900">New from YouTube</h3>
           <p className="mt-1 text-sm text-gray-600">Fetch transcript from YouTube URL</p>
         </Link>
+        */}
       </div>
 
       {/* Recent Guides */}
