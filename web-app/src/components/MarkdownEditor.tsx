@@ -45,7 +45,7 @@ export default function MarkdownEditor({
     content: marked.parse(content || '') as string,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4',
+        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none p-4',
       },
     },
     onUpdate: ({ editor }) => {
@@ -94,7 +94,7 @@ export default function MarkdownEditor({
     }`;
 
   return (
-    <div className="border border-gray-300 rounded-lg bg-white shadow-md m-6 p-0">
+    <div className="border border-gray-300 rounded-lg bg-white shadow-md m-6 flex flex-col" style={{ maxHeight: 'calc(100vh - 220px)' }}>
       {/* Toolbar */}
       <div className="border-b border-gray-300 bg-gray-50 p-2 flex flex-wrap gap-1">
         <button
@@ -191,7 +191,9 @@ export default function MarkdownEditor({
       </div>
 
       {/* Editor */}
-      <EditorContent editor={editor} />
+      <div className="flex-1 overflow-y-auto">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }
