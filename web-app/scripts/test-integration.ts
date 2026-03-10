@@ -14,7 +14,7 @@ async function test() {
 
     // Test 2: Generate guide from transcript
     console.log('\nTest 2: Generating discussion guide...');
-    const markdown = await generateGuide(result.transcript);
+    const markdown = await generateGuide('', result.transcript);
     console.log('✅ Success!');
     console.log('Generated markdown length:', markdown.length);
   } catch (error) {
