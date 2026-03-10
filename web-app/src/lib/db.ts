@@ -66,11 +66,12 @@ export async function createGuide(data: {
   sourceType: 'youtube' | 'upload';
   sourceIdentifier: string;
   transcript: string;
+  biblePassages?: string;
   publishDate?: Date;
 }) {
   const result = await pool.query(
-    'INSERT INTO guides (user_id, title, source_type, source_identifier, transcript, publish_date, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-    [data.userId, data.title, data.sourceType, data.sourceIdentifier, data.transcript, data.publishDate || null, 'processing']
+    'INSERT INTO guides (user_id, title, source_type, source_identifier, transcript, bible_passages, publish_date, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+    [data.userId, data.title, data.sourceType, data.sourceIdentifier, data.transcript, data.biblePassages || null, data.publishDate || null, 'processing']
   );
   return result.rows[0];
 }

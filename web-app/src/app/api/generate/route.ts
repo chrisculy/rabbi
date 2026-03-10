@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { guideId, transcript } = await request.json();
+    const { guideId, transcript, biblePassages } = await request.json();
 
     if (!guideId || !transcript) {
       return NextResponse.json(
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     console.log('[API] Transcript length:', transcript.length);
 
     // Generate discussion guide using Gemini AI
-    const markdown = await generateGuide(transcript);
+    const markdown = await generateGuide(biblePassages || '', transcript);
 
     console.log('[API] Guide generated successfully, length:', markdown.length);
 

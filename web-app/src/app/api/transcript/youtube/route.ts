@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { url } = await request.json();
+    const { url, biblePassages } = await request.json();
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
       sourceType: 'youtube',
       sourceIdentifier: url,
       transcript: result.transcript,
+      biblePassages: biblePassages || undefined,
       publishDate: result.date ? new Date(result.date) : undefined,
     });
 

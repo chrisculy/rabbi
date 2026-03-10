@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const biblePassages = formData.get('biblePassages') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
         sourceType: 'upload',
         sourceIdentifier: file.name,
         transcript: result.transcript,
+        biblePassages: biblePassages || undefined,
         publishDate: result.date ? new Date(result.date) : undefined,
       });
 

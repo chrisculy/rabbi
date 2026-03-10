@@ -10,7 +10,7 @@ import { GoogleGenAI } from '@google/genai';
  * @param transcript - The sermon transcript text
  * @returns Promise<string> - Markdown formatted discussion guide
  */
-export async function generateGuide(transcript: string): Promise<string> {
+export async function generateGuide(biblePassages: string, transcript: string): Promise<string> {
   console.log('[GuideGenerator] Starting guide generation');
   console.log('[GuideGenerator] Transcript length:', transcript.length);
 
@@ -28,7 +28,7 @@ export async function generateGuide(transcript: string): Promise<string> {
     const ai = new GoogleGenAI({ apiKey });
 
     // Create the prompt
-    const prompt = createDiscussionGuidePrompt(transcript);
+    const prompt = createDiscussionGuidePrompt(biblePassages, transcript);
 
     console.log('[GuideGenerator] Sending request to Gemini API...');
 
@@ -68,29 +68,30 @@ export async function generateGuide(transcript: string): Promise<string> {
 
 /**
  * Create the prompt for generating a discussion guide
+ * @param biblePassages - The Bible passages
  * @param transcript - The sermon transcript
  * @returns The formatted prompt string
  */
-function createDiscussionGuidePrompt(transcript: string): string {
-  return `Based on the following sermon transcript, create a small group leader discussion guide suitable for a 20-40 minute discussion.
+function createDiscussionGuidePrompt(biblePassages: string, transcript: string): string {
+  return `Based on the following Bible passages and sermon transcript, create a small group leader discussion guide suitable for a 20-40 minute discussion.
 
 The guide should follow the SOAP structure (Scripture, Observation, Application, Prayer) and include the following elements:
 
 A title in the format "Small Group Discussion Guide: [Sermon Passage]"
 
 1. Scripture:
-    a. a brief summary of the sermon passage (focus more on summarizing the sermon's passage than the sermon itself) (2-3 sentences)
+    a. a brief summary of the Bible passage(s) (focus more on summarizing the Bible passage(s) than the sermon itself) (2-3 sentences)
     b. Key themes and scripture references mentioned
 3. Observation:
-    a. 5-7 thoughtful discussion questions that:
-        - Help participants reflect on the sermon's passage
-        - Connect the sermon and its passage to personal application
+    a. 3-5 thoughtful discussion questions that:
+        - Help participants reflect on the Bible passage(s)
+        - Connect the Bible passage(s) to personal application
         - Encourage deeper theological exploration
         - Foster group conversation
-         - Aid in answering the following questions each week (but can phrase differently as needed for the particular sermon passage):
-            1. What do we learn about God?
-            2. What do we learn about humanity?
-            3. What is God inviting us to believe or obey in this passage?
+        - Aid in answering the following questions each week (but don't use these questions verbatim; adapt appropriately for the particular Bible passage(s)):
+          1. What do we learn about God?
+          2. What do we learn about humanity?
+          3. What is God inviting us to believe or obey in this passage?
 4. Application:
     a. A practical application challenge for the week
 5. Prayer:
@@ -98,16 +99,21 @@ A title in the format "Small Group Discussion Guide: [Sermon Passage]"
 
 Lay out the guide in a clear, easy-to-read structure that a small group leader can follow. Please do not reference the structure of the guide in the guide itself (e.g. "This guide is intended for a 20-40 minute discussion", "Use this guide to facilitate conversation", etc.)
 
-Please note that the sermon transcript may include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
+Please note that the sermon portion of the transcript may include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
 
 The output must be in Markdown format.
+
+BEGIN BIBLE PASSAGES.
+
+${biblePassages}
+
+END BIBLE PASSAGES.
 
 BEGIN SERMON TRANSCRIPT.
 
 ${transcript}
 
-END SERMON TRANSCRIPT.
-Please provide a well-structured discussion guide.`;
+END SERMON TRANSCRIPT.`;
 }
 
 /**

@@ -13,6 +13,7 @@ interface Guide {
   id: string;
   title: string;
   transcript: string;
+  bible_passages: string | null;
   markdown_content: string | null;
   status: string;
 }
@@ -60,6 +61,7 @@ export default function GuidePage() {
         body: JSON.stringify({
           guideId: guideData.id,
           transcript: guideData.transcript,
+          biblePassages: guideData.bible_passages,
         }),
       });
 

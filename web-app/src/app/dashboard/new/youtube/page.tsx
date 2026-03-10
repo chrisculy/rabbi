@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export default function NewFromYouTube() {
   const [url, setUrl] = useState('');
+  const [biblePassages, setBiblePassages] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function NewFromYouTube() {
       const response = await fetch('/api/transcript/youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, biblePassages: biblePassages.trim() || undefined }),
       });
 
       if (!response.ok) {
@@ -56,6 +57,20 @@ export default function NewFromYouTube() {
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://www.youtube.com/watch?v=..."
             required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="biblePassages" className="block text-sm font-medium text-gray-700">
+            Bible Passage(s)
+          </label>
+          <textarea
+            id="biblePassages"
+            value={biblePassages}
+            onChange={(e) => setBiblePassages(e.target.value)}
+            placeholder="e.g. John 3:16-21, Romans 8:1-11"
+            rows={3}
             className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           />
         </div>

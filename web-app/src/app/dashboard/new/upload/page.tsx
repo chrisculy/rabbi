@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export default function NewFromUpload() {
   const [file, setFile] = useState<File | null>(null);
+  const [biblePassages, setBiblePassages] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
@@ -46,6 +47,9 @@ export default function NewFromUpload() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (biblePassages.trim()) {
+        formData.append('biblePassages', biblePassages.trim());
+      }
 
       const response = await fetch('/api/transcript/upload', {
         method: 'POST',
@@ -76,6 +80,20 @@ export default function NewFromUpload() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="biblePassages" className="block text-sm font-medium text-gray-700">
+            Bible Passage(s)
+          </label>
+          <textarea
+            id="biblePassages"
+            value={biblePassages}
+            onChange={(e) => setBiblePassages(e.target.value)}
+            placeholder="e.g. John 3:16-21, Romans 8:1-11"
+            rows={3}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          />
+        </div>
+
         <div
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}

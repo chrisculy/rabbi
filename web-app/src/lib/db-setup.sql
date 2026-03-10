@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS guides (
   source_type VARCHAR(20),
   source_identifier TEXT,
   transcript TEXT,
+  bible_passages TEXT,
   markdown_content TEXT,
   pdf_data BYTEA,
   pdf_generated_at TIMESTAMP,
