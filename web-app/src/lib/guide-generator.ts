@@ -27,8 +27,34 @@ export async function generateGuide(biblePassages: string, transcript: string): 
     // Initialize Google GenAI client
     const ai = new GoogleGenAI({ apiKey });
 
+    // Summarize the sermon transcript first to allow guide creation to focus more on the Bible passages themselves.
+    const sermonSummaryPrompt = `Summarize the following sermon transcript in 1-2 paragraphs, focusing on interpretation and application of the primary Bible passage.
+
+    Please note that the sermon transcript may include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
+
+    The summary should be in plain text with no formatting.
+
+BEGIN SERMON TRANSCRIPT.
+${transcript}
+END SERMON TRANSCRIPT.`;
+
+    console.log('[GuideGenerator] Generating sermon summary for guide generation prompt:');
+
+    const sermonSummaryResponse = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: sermonSummaryPrompt,
+      config: {
+        temperature: 0.8,
+      },
+    });
+
+    const sermonSummary = sermonSummaryResponse.text;
+    if (!sermonSummary) {
+      throw new Error('Gemini API returned empty sermon summary');
+    }
+
     // Create the prompt
-    const prompt = createDiscussionGuidePrompt(biblePassages, transcript);
+    const prompt = createDiscussionGuidePrompt(biblePassages, sermonSummary);
 
     console.log('[GuideGenerator] Sending request to Gemini API...');
 
@@ -69,19 +95,19 @@ export async function generateGuide(biblePassages: string, transcript: string): 
 /**
  * Create the prompt for generating a discussion guide
  * @param biblePassages - The Bible passages
- * @param transcript - The sermon transcript
+ * @param summary - The sermon summary
  * @returns The formatted prompt string
  */
-function createDiscussionGuidePrompt(biblePassages: string, transcript: string): string {
-  return `Based on the following Bible passages and sermon transcript, create a small group leader discussion guide suitable for a 20-40 minute discussion.
+function createDiscussionGuidePrompt(biblePassages: string, summary: string): string {
+  return `Based on the following Bible passages (and using the sermon summary as an interpretive and application reference) create a small group leader discussion guide suitable for a 20-40 minute discussion.
 
 The guide should follow the SOAP structure (Scripture, Observation, Application, Prayer) and include the following elements:
 
-A title in the format "Small Group Discussion Guide: [Sermon Passage]"
+A title in the format "Small Group Discussion Guide: [Primary Bible Passage]"
 
 1. Scripture:
-    a. a brief summary of the Bible passage(s) (focus more on summarizing the Bible passage(s) than the sermon itself) (2-3 sentences)
-    b. Key themes and scripture references mentioned
+    a. a brief summary of the primary Bible passage(s) (do not use the sermon content for this summary) (2-3 sentences)
+    b. Key themes and secondary scripture references
 3. Observation:
     a. 3-5 thoughtful discussion questions that:
         - Help participants reflect on the Bible passage(s)
@@ -99,8 +125,6 @@ A title in the format "Small Group Discussion Guide: [Sermon Passage]"
 
 Lay out the guide in a clear, easy-to-read structure that a small group leader can follow. Please do not reference the structure of the guide in the guide itself (e.g. "This guide is intended for a 20-40 minute discussion", "Use this guide to facilitate conversation", etc.)
 
-Please note that the sermon portion of the transcript may include some announcements at the beginning and an invitation to respond at the end; focus on the main sermon content.
-
 The output must be in Markdown format.
 
 BEGIN BIBLE PASSAGES.
@@ -109,11 +133,11 @@ ${biblePassages}
 
 END BIBLE PASSAGES.
 
-BEGIN SERMON TRANSCRIPT.
+BEGIN SERMON SUMMARY.
 
-${transcript}
+${summary}
 
-END SERMON TRANSCRIPT.`;
+END SERMON SUMMARY.`;
 }
 
 /**
