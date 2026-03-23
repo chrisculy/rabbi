@@ -99,7 +99,7 @@ END SERMON TRANSCRIPT.`;
  * @returns The formatted prompt string
  */
 function createDiscussionGuidePrompt(biblePassages: string, summary: string): string {
-  return `Based on the following Bible passages (and using the sermon summary as an interpretive and application reference) create a small group leader discussion guide suitable for a 20-40 minute discussion.
+  return `Based on the following Bible passages (and using the sermon summary as an interpretive and application reference) create a small group leader discussion guide suitable for a 20-40 minute discussion. The entire guide should be written at a 7th grade reading level, especially the questions (some of the questions can be written at a lower level  where appropriate).
 
 The guide should follow the SOAP structure (Scripture, Observation, Application, Prayer) and include the following elements:
 
@@ -109,7 +109,7 @@ A title in the format "Small Group Discussion Guide: [Primary Bible Passage]"
     a. a brief summary of the primary Bible passage(s) (do not use the sermon content for this summary) (2-3 sentences)
     b. Key themes and secondary scripture references
 3. Observation:
-    a. 3-5 thoughtful discussion questions phrased at a 4th grade reading level that:
+    a. 3-5 thoughtful discussion questions that:
         - Help participants reflect on the Bible passage(s)
         - Connect the Bible passage(s) to personal application
         - Encourage deeper theological exploration
