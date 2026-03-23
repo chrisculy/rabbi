@@ -109,11 +109,12 @@ A title in the format "Small Group Discussion Guide: [Primary Bible Passage]"
     a. a brief summary of the primary Bible passage(s) (do not use the sermon content for this summary) (2-3 sentences)
     b. Key themes and secondary scripture references
 3. Observation:
-    a. 3-5 thoughtful discussion questions that:
+    a. 3-5 thoughtful discussion questions phrased at a 4th grade reading level that:
         - Help participants reflect on the Bible passage(s)
         - Connect the Bible passage(s) to personal application
         - Encourage deeper theological exploration
         - Foster group conversation
+        - Can be understood and engaged with by both recent converts and mature believers
         - Aid in answering the following questions each week (but don't use these questions verbatim; adapt appropriately for the particular Bible passage(s)):
           1. What do we learn about God?
           2. What do we learn about humanity?
