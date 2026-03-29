@@ -99,7 +99,7 @@ END SERMON TRANSCRIPT.`;
  * @returns The formatted prompt string
  */
 function createDiscussionGuidePrompt(biblePassages: string, summary: string): string {
-  return `Based on the following Bible passages (and using the sermon summary as an interpretive and application reference) create a small group leader discussion guide suitable for a 20-40 minute discussion. The entire guide should be written at a 7th grade reading level, especially the questions (some of the questions can be written at a lower level  where appropriate).
+  return `Based on the following Bible passages (and using the sermon summary as an interpretive and application reference) create a small group leader discussion guide suitable for a 20-40 minute discussion. The entire guide should be written at a 5th-7th grade reading level, especially the questions.
 
 The guide should follow the SOAP structure (Scripture, Observation, Application, Prayer) and include the following elements:
 
@@ -126,7 +126,7 @@ A title in the format "Small Group Discussion Guide: [Primary Bible Passage]"
 
 Lay out the guide in a clear, easy-to-read structure that a small group leader can follow. Please do not reference the structure of the guide in the guide itself (e.g. "This guide is intended for a 20-40 minute discussion", "Use this guide to facilitate conversation", etc.)
 
-The output must be in Markdown format.
+The output must be in Markdown format. Do not use quotation marks around text unless you are quoting scripture directly.
 
 BEGIN BIBLE PASSAGES.
 
