@@ -38,11 +38,12 @@ export async function generatePdf(options: PdfGeneratorOptions): Promise<Buffer>
   const gothaMediumBuffer = fs.readFileSync(path.join(assetsDir, 'GothaProMed.otf'));
   const gothaMediumBase64 = `data:font/otf;base64,${gothaMediumBuffer.toString('base64')}`;
 
-  // Format date
+  // Format date using Central Timezone
   const formattedDate = date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'America/Chicago',
   });
 
   // Create complete HTML document with styling

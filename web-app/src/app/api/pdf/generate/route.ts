@@ -26,11 +26,12 @@ export async function POST(request: NextRequest) {
       date: new Date(),
     });
 
-    // Format filename with current date
+    // Format filename with current date in Central Timezone
     const currentDate = new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: '2-digit',
+      timeZone: 'America/Chicago',
     });
     const filename = `Kings Church - Small Group Discussion Guide - Week of ${currentDate}.pdf`;
 
