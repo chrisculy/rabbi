@@ -109,7 +109,7 @@ A title in the format "Small Group Discussion Guide: [Primary Bible Passage]"
     a. a brief summary of the primary Bible passage(s) (do not use the sermon content for this summary) (2-3 sentences)
     b. Key themes and, if applicable, secondary scripture references
 3. Observation:
-    a. 3-5 pairs of thoughtful discussion questions. Each pair should include one question that is aimed at younger Christians, framed at the 5th-7th grade reading level, and one question that is aimed at more mature believers, framed at a high school reading level. The questions should be displayed next to each other in two columns using a Markdown table with no borders, with the younger Christian question on the left and the mature believer question on the right. The questions should be approximately 40% comprehension and 60% practical application. The questions should be designed so that they:
+    a. 3-5 pairs of thoughtful discussion questions. Each pair should include one question that is aimed at younger Christians, framed at the 5th-7th grade reading level, and one question that is aimed at more mature believers, framed at a high school reading level. The questions should be displayed next to each other in two columns, with the younger Christian question on the left and the mature believer question on the right. The questions should be approximately 40% comprehension and 60% practical application. The questions should be designed so that they:
         - Help participants reflect on the Bible passage(s)
         - Connect the Bible passage(s) to personal application
         - Encourage deeper theological exploration
