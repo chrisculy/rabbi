@@ -5,6 +5,10 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import { useEffect } from 'react';
 import { marked } from 'marked';
 import TurndownService from 'turndown';
@@ -20,6 +24,35 @@ const turndownService = new TurndownService({
   headingStyle: 'atx',
   codeBlockStyle: 'fenced',
 });
+
+// Add GFM table rule
+turndownService.addRule('table', {
+  filter: 'table',
+  replacement(_content, node) {
+    const table = node as HTMLTableElement;
+    const rows = Array.from(table.querySelectorAll('tr'));
+    if (rows.length === 0) return '';
+
+    const toRow = (tr: Element) =>
+      '| ' +
+      Array.from(tr.querySelectorAll('th,td'))
+        .map((cell) => (cell.textContent ?? '').trim().replace(/\|/g, '\\|'))
+        .join(' | ') +
+      ' |';
+
+    const headerRow = rows[0];
+    const headerCells = Array.from(headerRow.querySelectorAll('th,td'));
+    const separator = '| ' + headerCells.map(() => '---').join(' | ') + ' |';
+
+    const lines = [toRow(headerRow), separator, ...rows.slice(1).map(toRow)];
+    return '\n\n' + lines.join('\n') + '\n\n';
+  },
+});
+
+// Prevent turndown from trying to convert individual table elements
+turndownService.addRule('tableCell', { filter: ['th', 'td'], replacement: (c) => c });
+turndownService.addRule('tableRow', { filter: 'tr', replacement: (c) => c });
+turndownService.addRule('tableSection', { filter: ['thead', 'tbody', 'tfoot'], replacement: (c) => c });
 
 export default function MarkdownEditor({
   content,
@@ -41,6 +74,12 @@ export default function MarkdownEditor({
       Link.configure({
         openOnClick: false,
       }),
+      Table.configure({
+        resizable: false,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: marked.parse(content || '') as string,
     editorProps: {
@@ -168,6 +207,62 @@ export default function MarkdownEditor({
           title="Quote"
         >
           " Quote
+        </button>
+
+        <div className="w-px bg-gray-300 mx-1" />
+
+        <button
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          }
+          className={toolbarBtn(false)}
+          title="Insert Table"
+        >
+          ⊞ Table
+        </button>
+        <button
+          onClick={() => editor.chain().focus().addColumnAfter().run()}
+          disabled={!editor.can().addColumnAfter()}
+          className="px-3 py-1 rounded border border-transparent text-gray-700 hover:bg-gray-200 hover:border-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Add Column"
+        >
+          +Col
+        </button>
+        <button
+          onClick={() => editor.chain().focus().addRowAfter().run()}
+          disabled={!editor.can().addRowAfter()}
+          className="px-3 py-1 rounded border border-transparent text-gray-700 hover:bg-gray-200 hover:border-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Add Row"
+        >
+          +Row
+        </button>
+        <button
+          onClick={() => editor.chain().focus().deleteColumn().run()}
+          disabled={!editor.can().deleteColumn()}
+          className="px-3 py-1 rounded border border-transparent text-gray-700 hover:bg-gray-200 hover:border-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Delete Column"
+        >
+          -Col
+        </button>
+        <button
+          onClick={() => editor.chain().focus().deleteRow().run()}
+          disabled={!editor.can().deleteRow()}
+          className="px-3 py-1 rounded border border-transparent text-gray-700 hover:bg-gray-200 hover:border-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Delete Row"
+        >
+          -Row
+        </button>
+        <button
+          onClick={() => editor.chain().focus().deleteTable().run()}
+          disabled={!editor.can().deleteTable()}
+          className="px-3 py-1 rounded border border-transparent text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Delete Table"
+        >
+          ✕ Table
         </button>
 
         <div className="w-px bg-gray-300 mx-1" />

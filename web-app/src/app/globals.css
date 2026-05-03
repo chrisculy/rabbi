@@ -83,3 +83,40 @@ body {
   margin-bottom: 1.6em;
   padding-left: 1em;
 }
+
+/* Tiptap table styles */
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1em 0;
+  overflow: hidden;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  border: 1px solid #d1d5db;
+  padding: 0.4em 0.6em;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+  min-width: 3em;
+}
+
+.ProseMirror table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  text-align: left;
+}
+
+.ProseMirror table .selectedCell::after {
+  z-index: 2;
+  position: absolute;
+  content: '';
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(99, 102, 241, 0.15);
+  pointer-events: none;
+}
